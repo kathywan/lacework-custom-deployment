@@ -1,0 +1,298 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Lacework AWS CSPM - IAM Role & Policy Creation",
+    "Resources": {
+      "LaceworkKmsKey": {
+        "Type": "AWS::KMS::Key",
+        "Properties": {
+          "Description": "Lacework Kms Key",
+          "Enabled": true,
+          "KeyPolicy": {
+            "Version": "2012-10-17",
+            "Id": "Key policy created by CloudTrail",
+            "Statement": [
+              {
+                "Sid": "Enable IAM User Permissions",
+                "Effect": "Allow",
+                "Principal": {
+                  "AWS": [
+                    {
+                      "Fn::Join": [
+                        "", [
+                          "arn:aws:iam::",
+                          { "Ref": "AWS::AccountId"},
+                          ":root"
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                "Action": "kms:*",
+                "Resource": "*"
+              },
+              {
+                "Sid": "Allow CloudTrail to encrypt logs",
+                "Effect": "Allow",
+                "Principal": { "Service": "cloudtrail.amazonaws.com" },
+                "Action": "kms:GenerateDataKey*",
+                "Resource": "*"
+              },
+              {
+                "Sid": "Allow CloudTrail to describe key",
+                "Effect": "Allow",
+                "Principal": { "Service": "cloudtrail.amazonaws.com"},
+                "Action": "kms:DescribeKey",
+                "Resource": "*"
+              },
+              {
+                "Sid": "Allow SNS service to encrypt/decrypt",
+                "Effect": "Allow",
+                "Principal": {"Service": "sns.amazonaws.com" },
+                "Action": [
+                  "kms:GenerateDataKey*",
+                  "kms:Decrypt"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "Enable cross account log decryption",
+                "Effect": "Allow",
+                "Principal": {
+                  "AWS": "*"
+                },
+                "Action": [
+                  "kms:Decrypt",
+                  "kms:ReEncryptFrom"
+                ],
+                "Resource": "*",
+                "Condition": {
+                  "StringEquals": {"kms:CallerAccount": {  "Ref": "AWS::AccountId" }},
+                  "StringLike": {"kms:EncryptionContext:aws:cloudtrail:arn": [{"Fn::Join": ["", ["arn:aws:cloudtrail:*:", {"Ref": "AWS::AccountId"}, ":trail/*"]]}]}
+                }
+              }
+            ]
+          },
+          "MultiRegion": true
+        }
+      },
+      "LaceworkCWSSACrossAccountAccessRole": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+          "RoleName": "lacework-fhlbny-laceworkcwssarole",
+          "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Action": "sts:AssumeRole",
+                "Effect": "Allow",
+                "Principal": {
+                  "AWS": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:iam::",
+                        "434813966438",
+                        ":root"
+                      ]
+                    ]
+                  }
+                },
+                "Condition": {
+                  "StringEquals": {
+                    "sts:ExternalId": "FHLA84DF12"
+                  }
+                }
+              }
+            ]
+          },
+          "ManagedPolicyArns": [
+            "arn:aws:iam::aws:policy/SecurityAudit"
+          ]
+        }
+      },
+      "LaceworkCWSPolicy": {
+        "Type": "AWS::IAM::Policy",
+        "Properties": {
+          "PolicyName": "LaceworkCWSPolicy",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "ConsumeNotifications",
+                "Action": [
+                  "sqs:GetQueueAttributes",
+                  "sqs:GetQueueUrl",
+                  "sqs:DeleteMessage",
+                  "sqs:ReceiveMessage"
+                ],
+                "Effect": "Allow",
+                "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:sqs:",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        ":",
+                        {
+                            "Ref": "AWS::AccountId"
+                        },
+                        ":",
+                        "lacework-fhlbny-laceworkcws"
+                      ]
+                    ]
+                }
+              },
+              {
+                "Sid": "ListLogFiles",
+                "Action": [
+                  "s3:ListBucket"
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:s3:::",
+                        "lacework-fhlbny-ct-",
+                        {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "/*AWSLogs/"
+                      ]
+                    ]
+                  }
+                ],
+                "Condition": {
+                  "StringLike": {
+                    "s3:prefix": [
+                      "*AWSLogs/"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "ReadLogFiles",
+                "Action": [
+                  "s3:Get*"
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:s3:::",
+                        "lacework-fhlbny-ct-",
+                        {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "/*AWSLogs/*"
+                      ]
+                    ]
+                  }
+                ]
+              },
+              {
+                "Sid": "GetAccountAlias",
+                "Action": [
+                  "iam:ListAccountAliases"
+                ],
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Sid": "Debug",
+                "Action": [
+                  "cloudtrail:DescribeTrails",
+                  "cloudtrail:GetTrail",
+                  "cloudtrail:GetTrailStatus",
+                  "cloudtrail:ListPublicKeys",
+                  "eks:ListTagsForResource",
+                  "s3:GetBucketAcl",
+                  "s3:GetBucketPolicy",
+                  "s3:ListAllMyBuckets",
+                  "s3:GetBucketLocation",
+                  "s3:GetBucketLogging",
+                  "sns:GetSubscriptionAttributes",
+                  "sns:GetTopicAttributes",
+                  "sns:ListSubscriptions",
+                  "sns:ListSubscriptionsByTopic",
+                  "sns:ListTopics"
+                ],
+                "Effect": "Allow",
+                "Resource": "*"
+              }
+            ]
+          },
+          "Roles": [
+            {
+              "Ref": "LaceworkCWSSACrossAccountAccessRole"
+            }
+          ]
+        }
+      },
+      "LaceworkAuditPolicy": {
+        "Type": "AWS::IAM::Policy",
+        "Properties": {
+          "PolicyName": "LaceworkAuditPolicy",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "GetBucketPublicAccessBlock",
+                    "Action": [
+                      "s3:GetBucketPublicAccessBlock"
+                    ],
+                    "Effect": "Allow",
+                    "Resource": "*"
+                },
+                {
+                    "Sid": "GetEbsEncryptionByDefault",
+                    "Action": [
+                      "ec2:GetEbsEncryptionByDefault"
+                    ],
+                    "Effect": "Allow",
+                    "Resource": "*"
+                }
+            ]
+          },
+          "Roles": [
+            {
+              "Ref": "LaceworkCWSSACrossAccountAccessRole"
+            }
+          ]
+        }
+      }
+    },
+    "Outputs": {
+      "RoleARN": {
+        "Description": "Cross-account access role ARN to share with Lacework for CloudTrail integration",
+        "Value": {
+          "Fn::GetAtt": [
+            "LaceworkCWSSACrossAccountAccessRole",
+            "Arn"
+          ]
+        }
+      },
+      "ExternalID": {
+        "Description": "ExternalID to share with Lacework for CloudTrail integration",
+        "Value": "FHLA84DF12"
+      },
+      "KMSKeyARN": {
+        "Description": "KMS Key ARN that will be used to encrypt the cloudtrail resources",
+        "Value": {
+            "Fn::GetAtt": [
+              "LaceworkKmsKey",
+              "Arn"
+            ]
+          }
+      },
+      "TemplateVersion": {
+        "Description": "Template version",
+        "Value": "1.1"
+      }
+    }
+  }

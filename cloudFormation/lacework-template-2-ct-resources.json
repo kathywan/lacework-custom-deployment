@@ -78,6 +78,13 @@
         "Type": "AWS::S3::Bucket",
         "Properties": {
           "AccessControl": "LogDeliveryWrite",
+          "OwnershipControls": {
+            "Rules": [
+                {
+                    "ObjectOwnership": "ObjectWriter"
+                }
+            ]
+          },
           "BucketEncryption": {
             "ServerSideEncryptionConfiguration": [
               {
@@ -211,9 +218,7 @@
                 "-laceworkcws"
               ]
             ]
-          },
-          "KmsMasterKeyId": {
-            "Ref": "KMSKeyARN"
+
           }
         }
       },
@@ -290,9 +295,6 @@
                 "-laceworkcws"
               ]
             ]
-          },
-          "KmsMasterKeyId": {
-            "Ref": "KMSKeyARN"
           }
         }
       },
@@ -356,7 +358,7 @@
           "ExternalId": { "Ref": "ExternalID" },
           "SqsQueueUrl": {  "Ref": "LaceworkCWSQueue" },
           "ApiToken" : { "Ref": "ApiToken" },
-          "Account": "lworgkathywan",
+          "Account": "fhlbny",
           "TemplateVersion": "1.1",
           "AWSAccountId": {  "Ref": "AWS::AccountId" }
         }

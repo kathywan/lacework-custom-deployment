@@ -6,6 +6,7 @@
         "Type": "AWS::KMS::Key",
         "Properties": {
           "Description": "Lacework Kms Key",
+        "EnableKeyRotation" : true,
           "Enabled": true,
           "KeyPolicy": {
             "Version": "2012-10-17",

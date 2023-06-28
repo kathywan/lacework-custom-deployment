@@ -6,6 +6,14 @@
       "ParameterGroups": [
         {
           "Label": {
+            "default": "Lacework Integration Authorization"
+          },
+          "Parameters": [
+            "LaceworkServerToken"
+          ]
+        },
+        {
+          "Label": {
             "default": "Advanced Configuration"
           },
           "Parameters": [
@@ -24,6 +32,9 @@
         },
         "ResourceNameSuffix": {
           "default": "Resource Name Suffix"
+        },
+        "LaceworkServerToken": {
+          "default": "Find Authorization Token from Lacework Integration"
         }
       }
     }
@@ -39,14 +50,14 @@
     "ResourceNamePrefix": {
       "Description": "Names of resources created by the stack will be prefixed with this value to ensure uniqueness.",
       "Type": "String",
-      "Default": "lacework-agentless-lwintkathywan",
+      "Default": "lacework-agentless-fhlbny",
       "MinLength": 1,
       "MaxLength": 35
     },
     "ResourceNameSuffix": {
       "Description": "A unique suffix for resources.",
       "Type": "String",
-      "Default": "c706",
+      "Default": "c628",
       "MinLength": 3
     }
   },
@@ -143,9 +154,11 @@
           "ExternalId": {
             "Ref": "ExternalId"
           },
-          "LaceworkAccount": "lwintkathywan",
-          "LaceworkAPIServer": "lwintkathywan.lacework.net",
-          "LaceworkServerToken": "_ee61eb265df0326723c1cfeaa59bdf98",
+          "LaceworkAccount": "fhlbny",
+          "LaceworkAPIServer": "fhlbny.lacework.net",
+          "LaceworkServerToken": {
+            "Ref": "LaceworkServerToken"
+          },
           "LaceworkAwsAccount": "434813966438",
           "ImageUrl": "public.ecr.aws/p5r4i7k7/sidekick:latest",
           "ResourceNamePrefix": {

@@ -120,7 +120,7 @@
       "MinLength": 3
     },
     "LaceworkApiToken": {
-      "Description": "Lacework API Token",
+      "Description": "Lacework API Token (use API call to retrieve token)",
       "Type": "String",
       "Default": "Lacework API Token",
       "MinLength": 14
@@ -128,11 +128,11 @@
     "LaceworkAPIServer": {
       "Description": "Lacework API Server",
       "Type": "String",
-      "Default": "lwintkathywan.lacework.net",
+      "Default": "fhlbny.lacework.net",
       "MinLength": 14
     },
     "LaceworkIntegrationGuid": {
-      "Description": "Lacework Integration GUID",
+      "Description": "Lacework Integration GUID (find from Lacework console for the integration)",
       "Type": "String",
       "Default": "Lacework Integration GUID",
       "MinLength": 14

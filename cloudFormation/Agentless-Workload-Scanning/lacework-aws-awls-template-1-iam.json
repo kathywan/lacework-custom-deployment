@@ -32,9 +32,6 @@
         },
         "ResourceNameSuffix": {
           "default": "Resource Name Suffix"
-        },
-        "LaceworkServerToken": {
-          "default": "Find Authorization Token from Lacework Integration"
         }
       }
     }
@@ -59,6 +56,10 @@
       "Type": "String",
       "Default": "c628",
       "MinLength": 3
+    },
+    "LaceworkServerToken": {
+      "Description": "Find Authorization Token from Lacework Integration",
+      "Type": "String"
     }
   },
   "Outputs": {

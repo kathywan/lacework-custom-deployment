@@ -1,0 +1,324 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Lacework AWS Agentless Workload Scanning Direct Integration",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Scanner Deployment Configuration"
+          },
+          "Parameters": [
+            "Regions",
+            "S3BucketArn",
+            "SecretArn",
+            "ECSTaskRoleArn",
+            "ECSTaskEventRoleArn",
+            "ECSTaskExecutionRoleArn",
+            "CrossAccountRoleArn",
+            "ExecutionRoleName",
+            "AdminstrationRoleArn",
+            "LaceworkIntegrationGuid",
+            "LaceworkApiToken",
+            "LaceworkAPIServer"
+          ]
+        },
+        {
+          "Label": {
+            "default": "AWS Service Permissions"
+          },
+          "Parameters": [
+            "VPCQuotaCheck"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Advanced Configuration"
+          },
+          "Parameters": [
+            "VPCCidrBlock",
+            "ResourceNamePrefix",
+            "ResourceNameSuffix",
+            "ExternalId"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "ExternalId": {
+          "default": "External ID from IAM stack"
+        },
+        "LaceworkAccount": {
+          "default": "Lacework Account"
+        },
+        "S3BucketArn": {
+          "default": "S3BucketArn"
+        },
+        "SecretArn": {
+          "default": "SecretArn"
+        },
+        "ECSTaskRoleArn": {
+          "default": "ECSTaskRoleArn"
+        },
+        "ECSTaskEventRoleArn": {
+          "default": "ECSTaskEventRoleArn"
+        },
+        "ECSTaskExecutionRoleArn": {
+          "default": "ECSTaskExecutionRoleArn"
+        },
+        "CrossAccountRoleArn": {
+          "default": "CrossAccountRoleArn"
+        },
+        "ExecutionRoleName": {
+          "default": "ExecutionRoleName"
+        },
+        "AdminstrationRoleArn": {
+          "default": "AdminstrationRoleArn"
+        },
+        "VPCQuotaCheck": {
+          "default": "Is there an available VPC and VPC Internet Gateway in each selected Region?"
+        },
+        "VPCCidrBlock": {
+          "default": "Scanning VPC CIDR Block"
+        },
+        "ResourceNamePrefix": {
+          "default": "Resource Name Prefix"
+        },
+        "ResourceNameSuffix": {
+          "default": "Resource Name Suffix"
+        },
+        "LaceworkApiToken": {
+          "default": "Lacework API Token"
+        },
+        "LaceworkAPIServer": {
+          "default": "fhlbny.lacework.net"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ExternalId": {
+      "Description": "The cross-account access role created by the stack will use this value for its External ID.",
+      "Type": "String",
+      "Default": "FHLBNY0627",
+      "MinLength": 7,
+      "MaxLength": 1224
+    },
+    "Regions": {
+      "Description": "A comma separated list of regions in which to deploy agentless workload scanning resources. Regional STS must be activated in every region selected. A new VPC and Internet Gateway will be created in each region. Each region must not have reached service quota for VPC and Internet Gateways. (Only applicable to multi-region deployments). Please see the documentation for more guidance on how to answer this question: https://docs.lacework.com/onboarding/aws-integrate-agentless-workload-scanning-with-cloudformation",
+      "Type": "CommaDelimitedList",
+      "Default": "ap-northeast-1, ap-northeast-2, ap-northeast-3, ap-south-1, ap-southeast-1, ap-southeast-2, ca-central-1, eu-central-1, eu-north-1, eu-west-1, eu-west-2, eu-west-3, sa-east-1, us-east-1, us-east-2, us-west-1, us-west-2"
+    },
+    "VPCQuotaCheck": {
+      "Description": "This install will create a new isolated VPC and VPC Internet Gateway in each selected Region. Please use Trusted Advisor to check the VPC and VPC Internet Gateway quotas and assure that at least one of each can be created in each selected Region. Please see the documentation for more guidance on how to answer this question: https://docs.lacework.com/onboarding/aws-integrate-agentless-workload-scanning-with-cloudformation",
+      "Type": "String",
+      "AllowedValues": [
+        "Yes"
+      ]
+    },
+    "VPCCidrBlock": {
+      "Description": "VPC CIDR block range for the isolated scanning network. This is used to create a new and isolated VPC and subnet.",
+      "Type": "String",
+      "Default": "10.10.32.0/24",
+      "MinLength": 4,
+      "AllowedPattern": "([0-9]{1,3}\\.){3}[0-9]{1,3}(\\/([0-9]|[1-2][0-9]|3[0-2]))"
+    },
+    "ResourceNamePrefix": {
+      "Description": "Names of resources created by the stack will be prefixed with this value to ensure uniqueness.",
+      "Type": "String",
+      "Default": "lacework-agentless-lwintkathywan",
+      "MinLength": 1,
+      "MaxLength": 35
+    },
+    "ResourceNameSuffix": {
+      "Description": "A unique suffix for resources.",
+      "Type": "String",
+      "Default": "c627",
+      "MinLength": 3
+    },
+    "LaceworkApiToken": {
+      "Description": "Lacework API Token",
+      "Type": "String",
+      "Default": "Lacework API Token",
+      "MinLength": 14
+    },
+    "LaceworkAPIServer": {
+      "Description": "Lacework API Server",
+      "Type": "String",
+      "Default": "lwintkathywan.lacework.net",
+      "MinLength": 14
+    },
+    "LaceworkIntegrationGuid": {
+      "Description": "Lacework Integration GUID",
+      "Type": "String",
+      "Default": "Lacework Integration GUID",
+      "MinLength": 14
+    },
+    "S3BucketArn": {
+      "Description": "S3BucketArn",
+      "Type": "String",
+      "Default": "S3BucketArn"
+    },
+    "SecretArn": {
+      "Description": "SecretArn",
+      "Type": "String",
+      "Default": "SecretArn"
+    },
+    "ECSTaskRoleArn": {
+      "Description": "ECSTaskRoleArn",
+      "Type": "String",
+      "Default": "ECSTaskRoleArn"
+    },
+    "ECSTaskEventRoleArn": {
+      "Description": "ECSTaskEventRoleArn",
+      "Type": "String",
+      "Default": "ECSTaskEventRoleArn"
+    },
+    "ECSTaskExecutionRoleArn": {
+      "Description": "ECSTaskExecutionRoleArn",
+      "Type": "String",
+      "Default": "ECSTaskExecutionRoleArn"
+    },
+    "CrossAccountRoleArn": {
+      "Description": "CrossAccountRoleArn",
+      "Type": "String",
+      "Default": "CrossAccountRoleArn"
+    },
+    "ExecutionRoleName": {
+      "Description": "ExecutionRoleName",
+      "Type": "String",
+      "Default": "ExecutionRoleName"
+    },
+    "AdminstrationRoleArn": {
+      "Description": "AdminstrationRoleArn",
+      "Type": "String",
+      "Default": "AdminstrationRoleArn"
+    }
+  },
+  "Resources": {
+    "RegionalStackSet": {
+      "Type": "AWS::CloudFormation::StackSet",
+      "Properties": {
+        "Description": "Lacework AWS Agentless Workload Scanning Regional Integration",
+        "Parameters": [
+          {
+            "ParameterKey": "LaceworkAPIServer",
+            "ParameterValue": {
+              "Ref": "LaceworkAPIServer"
+            }
+          },
+          {
+            "ParameterKey": "ImageUrl",
+            "ParameterValue": "public.ecr.aws/p5r4i7k7/sidekick:latest"
+          },
+          {
+            "ParameterKey": "VPCCidrBlock",
+            "ParameterValue": {
+              "Ref": "VPCCidrBlock"
+            }
+          },
+          {
+            "ParameterKey": "ResourceNamePrefix",
+            "ParameterValue": {
+              "Ref": "ResourceNamePrefix"
+            }
+          },
+          {
+            "ParameterKey": "ResourceNameSuffix",
+            "ParameterValue": {
+              "Ref": "ResourceNameSuffix"
+            }
+          },
+          {
+            "ParameterKey": "SecretArn",
+            "ParameterValue": {
+              "Ref": "SecretArn"
+            }
+          },
+          {
+            "ParameterKey": "ECSTaskEventRoleArn",
+            "ParameterValue": {
+              "Ref": "ECSTaskEventRoleArn"
+            }
+          },
+          {
+            "ParameterKey": "ECSTaskExecutionRoleArn",
+            "ParameterValue": {
+              "Ref": "ECSTaskExecutionRoleArn"
+            }
+          },
+          {
+            "ParameterKey": "ECSTaskRoleArn",
+            "ParameterValue": {
+              "Ref": "ECSTaskRoleArn"
+            }
+          }
+        ],
+        "AdministrationRoleARN": {
+          "Ref": "AdminstrationRoleArn"
+        },
+        "ExecutionRoleName": {
+         "Ref": "ExecutionRoleName"
+        },
+        "OperationPreferences": {
+          "RegionConcurrencyType": "PARALLEL",
+          "FailureTolerancePercentage": 100
+        },
+        "PermissionModel": "SELF_MANAGED",
+        "StackInstancesGroup": [
+          {
+            "Regions": {
+              "Ref": "Regions"
+            },
+            "DeploymentTargets": {
+              "Accounts": [
+                {
+                  "Ref": "AWS::AccountId"
+                }
+              ]
+            }
+          }
+        ],
+        "StackSetName": {
+          "Fn::Sub": "${AWS::StackName}"
+        },
+        "TemplateURL": "https://agentless-workload-scanner.s3.amazonaws.com/cloudformation-lacework/latest/scan-regional.json"
+      }
+    },
+    "LaceworkAgentlessCustomResource": {
+      "Type": "Custom::LaceworkSnsCustomResource",
+      "DependsOn": [
+        "RegionalStackSet"
+      ],
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Type": "AWS_SIDEKICK",
+        "ServiceToken": {
+          "Fn::Sub": "arn:aws:sns:${AWS::Region}:434813966438:prodn-customer-cloudformation"
+        },
+        "IntegrationName": {
+          "Fn::Sub": "${AWS::StackName}"
+        },
+        "IntegrationGuid": {
+          "Ref": "LaceworkIntegrationGuid"
+        },
+        "S3BucketArn": {
+          "Ref": "S3BucketArn"
+        },
+        "RoleArn": {
+          "Ref": "CrossAccountRoleArn"
+        },
+        "ExternalId": {
+          "Ref": "ExternalId"
+        },
+        "ApiToken": {
+          "Ref": "LaceworkApiToken"
+        },
+        "Account": "lwintkathywan",
+        "TemplateVersion": "0.1",
+        "AWSAccountId": {
+          "Fn::Sub": "${AWS::AccountId}"
+        }
+      }
+    }
+  }
+}

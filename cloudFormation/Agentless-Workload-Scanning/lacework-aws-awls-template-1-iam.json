@@ -1,0 +1,229 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Lacework AWS Agentless Workload Scanning Direct Integration",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Advanced Configuration"
+          },
+          "Parameters": [
+            "ResourceNamePrefix",
+            "ResourceNameSuffix",
+            "ExternalId"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "ExternalId": {
+          "default": "External ID"
+        },
+        "ResourceNamePrefix": {
+          "default": "Resource Name Prefix"
+        },
+        "ResourceNameSuffix": {
+          "default": "Resource Name Suffix"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ExternalId": {
+      "Description": "The cross-account access role created by the stack will use this value for its External ID.",
+      "Type": "String",
+      "Default": "FHLBNY0627",
+      "MinLength": 7,
+      "MaxLength": 1224
+    },
+    "ResourceNamePrefix": {
+      "Description": "Names of resources created by the stack will be prefixed with this value to ensure uniqueness.",
+      "Type": "String",
+      "Default": "lacework-agentless-lwintkathywan",
+      "MinLength": 1,
+      "MaxLength": 35
+    },
+    "ResourceNameSuffix": {
+      "Description": "A unique suffix for resources.",
+      "Type": "String",
+      "Default": "c706",
+      "MinLength": 3
+    }
+  },
+  "Outputs": {
+    "CrossAccountRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GlobalStack",
+          "Outputs.CrossAccountRoleArn"
+        ]
+      }
+    },
+    "ExternalId": {
+      "Value": {
+        "Fn::Sub": "${ExternalId}"
+      }
+    },
+    "ECSTaskRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GlobalStack",
+          "Outputs.ECSTaskRoleArn"
+        ]
+      }
+    },
+    "ECSTaskEventRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GlobalStack",
+          "Outputs.ECSTaskEventRoleArn"
+        ]
+      }
+    },
+    "ECSTaskExecutionRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GlobalStack",
+          "Outputs.ECSTaskExecutionRoleArn"
+        ]
+      }
+    },
+    "S3BucketArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GlobalStack",
+          "Outputs.S3BucketArn"
+        ]
+      }
+    },
+    "SecretArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GlobalStack",
+          "Outputs.SecretArn"
+        ]
+      }
+    },
+    "AdminstrationRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "StackSetRolesStack",
+          "Outputs.AdminstrationRoleArn"
+        ]
+      }
+    },
+    "ExecutionRoleName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "StackSetRolesStack",
+          "Outputs.ExecutionRoleName"
+        ]
+      }
+    }
+  },
+  "Resources": {
+    "StackSetRolesStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "Parameters": {
+          "ResourceNamePrefix": {
+            "Ref": "ResourceNamePrefix"
+          },
+          "ResourceNameSuffix": {
+            "Ref": "ResourceNameSuffix"
+          }
+        },
+        "TemplateURL": "https://agentless-workload-scanner.s3.amazonaws.com/cloudformation-lacework/latest/stackset-roles.json"
+      }
+    },
+    "GlobalStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "Parameters": {
+          "ExternalId": {
+            "Ref": "ExternalId"
+          },
+          "LaceworkAccount": "lwintkathywan",
+          "LaceworkAPIServer": "lwintkathywan.lacework.net",
+          "LaceworkServerToken": "_ee61eb265df0326723c1cfeaa59bdf98",
+          "LaceworkAwsAccount": "434813966438",
+          "ImageUrl": "public.ecr.aws/p5r4i7k7/sidekick:latest",
+          "ResourceNamePrefix": {
+            "Ref": "ResourceNamePrefix"
+          },
+          "ResourceNameSuffix": {
+            "Ref": "ResourceNameSuffix"
+          }
+        },
+        "TemplateURL": "https://agentless-workload-scanner.s3.amazonaws.com/cloudformation-lacework/latest/scan-global.json"
+      }
+    },
+    "ECSRoleStackSet": {
+      "Type": "AWS::CloudFormation::StackSet",
+      "DependsOn": [
+        "StackSetRolesStack"
+      ],
+      "Properties": {
+        "Description": "Lacework AWS Agentless Workload Scanning AWS ECS Role",
+        "AdministrationRoleARN": {
+          "Fn::GetAtt": [
+            "StackSetRolesStack",
+            "Outputs.AdminstrationRoleArn"
+          ]
+        },
+        "ExecutionRoleName": {
+          "Fn::GetAtt": [
+            "StackSetRolesStack",
+            "Outputs.ExecutionRoleName"
+          ]
+        },
+        "OperationPreferences": {
+          "RegionConcurrencyType": "PARALLEL",
+          "FailureTolerancePercentage": 100
+        },
+        "PermissionModel": "SELF_MANAGED",
+        "StackInstancesGroup": [
+          {
+            "Regions": [
+              "us-east-1"
+            ],
+            "DeploymentTargets": {
+              "Accounts": [
+                {
+                  "Ref": "AWS::AccountId"
+                }
+              ]
+            }
+          }
+        ],
+        "StackSetName": {
+          "Fn::Sub": "${AWS::StackName}-ECSServiceLinkedRole"
+        },
+        "TemplateURL": "https://agentless-workload-scanner.s3.amazonaws.com/cloudformation-lacework/latest/ecs-role.json"
+      }
+    },
+    "SnapshotRoleStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "Parameters": {
+          "ExternalId": {
+            "Ref": "ExternalId"
+          },
+          "ECSTaskRoleArn": {
+            "Fn::GetAtt": [
+              "GlobalStack",
+              "Outputs.ECSTaskRoleArn"
+            ]
+          },
+          "ResourceNamePrefix": {
+            "Ref": "ResourceNamePrefix"
+          },
+          "ResourceNameSuffix": {
+            "Ref": "ResourceNameSuffix"
+          }
+        },
+        "TemplateURL": "https://agentless-workload-scanner.s3.amazonaws.com/cloudformation-lacework/latest/snapshot-role.json"
+      }
+    }
+  }
+}

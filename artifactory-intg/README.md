@@ -57,3 +57,7 @@ lacework-proxy-scanner-f9cbb96b4-mwdqj           1/1     Running   0          14
 Follow this [documentation](https://docs.lacework.net/onboarding/integrate-proxy-scanner-with-jfrog-registry#configure-the-jfrog-registry-webhook-for-optional-notifications) to create webhook in Artifactory
 
 > **_NOTE:_**  In my case, the URL invoked by webhook is {my ingress controller domain}/v1/notification?registry_name=kwan-jfrog. Make sure formatting correct URL.
+
+## Now both admission controller and artifactory will send images to proxy scanner for scanning.
+
+# HAPPY SCANNING!

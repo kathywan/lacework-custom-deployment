@@ -1,0 +1,12 @@
+- domain: <MY ARTIFACTORY DOMAIN>:<MY ARTIFACTORY PORT>
+  name: kwan-jfrog
+  # auth_header_name: NoAuth
+  auth_type:
+  is_public: true
+  ssl: false
+  auto_poll: false
+  credentials:
+    user_name: <MY UNAME>
+    password: <MY PASSWORD>
+  poll_frequency_minutes: 20
+  disable_non_os_package_scanning: false

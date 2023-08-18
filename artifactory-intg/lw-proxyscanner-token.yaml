@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lw-proxyscanner-secret
+  namespace: lacework
+type: Opaque
+stringData:
+  lw-proxyscanner-token: < Lacework Proxy Scanner Token >

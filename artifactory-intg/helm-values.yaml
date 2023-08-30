@@ -47,7 +47,7 @@ certs:
   serverKey:
 
 webhooks:
-  caBundle:
+  caBundle: < YOUR ENCODED CA BUNDLE >
   failurePolicy: Ignore
   timeoutSeconds: 30
 
